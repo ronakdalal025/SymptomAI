@@ -13,8 +13,9 @@ with open("saved_model/symptom_mapping.pkl", "rb") as f:
     symptom_cols = pickle.load(f)
 
 @app.route("/")
-def hello_world():
-    return "Hello World!"
+def home():
+    return {"status": "✅ Flask ML API running on Render!"}
+
 
 @app.route("/predict", methods=["POST"])
 def predict():
@@ -43,4 +44,5 @@ def predict():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)

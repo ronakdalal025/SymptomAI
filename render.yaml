@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: disease-predictor-api
+    env: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn app:app"
+    workingDirectory: ml_service
+    envVars:
+      - key: PORT
+        value: 5000
