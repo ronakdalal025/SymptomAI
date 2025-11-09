@@ -17,7 +17,7 @@ symptom_cols = None
 lock = threading.Lock()
 
 def load_assets():
-    global _model, _mlb, _symptom_cols
+    global model, mlb, symptom_cols
     if model is None:
         # Load once; keep memory steady
         model = tf.keras.models.load_model("saved_model/disease_predictor_multilabel.h5")
