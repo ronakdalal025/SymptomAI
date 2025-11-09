@@ -2,7 +2,6 @@ import express from "express";
 import axios from'axios';
 import cors from'cors';
 import 'dotenv/config'
-import main from "./config/gemini";
 
 const app = express();
 app.use(cors());
@@ -25,7 +24,7 @@ app.post("/predict",async (req,res)=>{
 });
 
 
-app.listen(process.env.PORT, ()=>{
-    console.log(`Express is running on port ${process.env.port} || 3000`);
+app.listen(process.env.PORT || 3000, ()=>{
+    console.log(`Express is running on port ${process.env.port}`);
 });
 

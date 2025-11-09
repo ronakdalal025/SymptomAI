@@ -1,7 +1,9 @@
 import React from 'react'
 import Button from '../components/Button'
+import { useNavigate } from 'react-router-dom'
 
-const HomePage = ({ navigateTo }) => {
+const HomePage = () => {
+    const navigate = useNavigate();
   return (
     <section className="text-center py-20 px-4 sm:py-32 bg-gray-50 rounded-b-3xl">
         <div className="max-w-4xl mx-auto">
@@ -18,7 +20,7 @@ const HomePage = ({ navigateTo }) => {
             </div>
         </div>
         <Button 
-            onClick={() => navigateTo('diagnosis')} 
+            onClick={() => navigate('/diagnosis')} 
             className="text-lg shadow-2xl shadow-teal-300"
         >
             Start Diagnosis &rarr;

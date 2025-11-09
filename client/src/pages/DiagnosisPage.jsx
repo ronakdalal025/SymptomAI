@@ -3,8 +3,10 @@ import Card from '../components/Card'
 import Button from '../components/Button'
 import SymptomTag from '../components/SymptomTag';
 import { getPredictions } from '../api/api';
+import { useNavigate } from 'react-router-dom'
 
-const DiagnosisPage = ({ navigateTo, selectedSymptoms, setSelectedSymptoms, setDiagnosisResult, availableSymptoms }) => {
+const DiagnosisPage = ({ selectedSymptoms, setSelectedSymptoms, setDiagnosisResult, availableSymptoms }) => {
+  const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -46,7 +48,7 @@ const DiagnosisPage = ({ navigateTo, selectedSymptoms, setSelectedSymptoms, setD
       try {
         const result = await getPredictions(selectedSymptoms);
         setDiagnosisResult(result);
-        navigateTo('results');
+        navigate('/results');
       } catch (error) {
         console.error("AI diagnosis failed:", error);
       } finally {
@@ -61,7 +63,7 @@ const DiagnosisPage = ({ navigateTo, selectedSymptoms, setSelectedSymptoms, setD
 
       <Card className="mb-8">
         <label htmlFor="symptom-input" className="block text-lg font-medium text-gray-700 mb-2">
-          Start typing to select symptoms (min 1 required):
+          Start typing to select symptoms (min 3 required):
         </label>
         
         {/* Symptom Input and Dropdown */}
@@ -113,7 +115,7 @@ const DiagnosisPage = ({ navigateTo, selectedSymptoms, setSelectedSymptoms, setD
         <Button 
           primary
           onClick={handleSubmit} 
-          disabled={selectedSymptoms.length === 0 || loading}
+          disabled={selectedSymptoms.length < 3 || loading}
           className="w-full sm:w-auto"
         >
           {loading ? (

@@ -1,15 +1,16 @@
 import React from 'react'
 import Card from '../components/Card'
 import Button from '../components/Button'
+import { useNavigate } from 'react-router-dom'
 
-const ResultsPage = ({ navigateTo, selectedSymptoms, diagnosisResult }) => {
+const ResultsPage = ({ selectedSymptoms, diagnosisResult , setDisease}) => {
+    const navigate = useNavigate();
     if (!diagnosisResult) {
       // Should theoretically not happen if navigation is controlled by results
       return <div className="text-center py-20 text-red-500">Error: No diagnosis result found.</div>;
     }
 
     const diagnosis = diagnosisResult;
-    console.log(diagnosis);
 
   return (
     <section className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
@@ -29,16 +30,16 @@ const ResultsPage = ({ navigateTo, selectedSymptoms, diagnosisResult }) => {
         ))}
       </div>
 
-      <div className='grid lg:grid-cols-5 grid-cols-1 gap-2'>
+      <div className='flex flex-wrap justify-center gap-2'>
         {diagnosis.map((item,index)=>(
-          <Card key={item.name} className="border-4 border-green-500 bg-green-50 mb-8">
+          <Card key={index} className="border-4 border-green-500 bg-green-50 mb-8">
             <p className="text-md text-black-600 font-semibold mb-3">
               Disease: <span className="text-1xl text-green-600 text-bold">{item.disease}</span>
             </p>
             <p className="text-md text-black-600 font-semibold mb-3">
               Confidence Score: <span className="text-1xl text-green-600 text-bold">{item.confidence}%</span>
             </p>
-            <Button>Read More!</Button>
+            <Button onClick={()=> {setDisease({ name: item.disease });  return navigate('/readmore')}} >Read More!</Button>
           </Card>
         ))}
       </div>
@@ -57,7 +58,7 @@ const ResultsPage = ({ navigateTo, selectedSymptoms, diagnosisResult }) => {
       </Card>
 
       <div className="mt-10 text-center">
-        <Button onClick={() => navigateTo('diagnosis')} primary={false}>
+        <Button onClick={() => navigate('/diagnosis')} primary={false}>
           Modify Symptoms & Re-Analyze
         </Button>
       </div>
