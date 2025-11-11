@@ -58,7 +58,7 @@ def predict():
 
     # Create binary vector
     symptom_list = [s.strip().lower() for s in symptoms]
-    input_vector = np.array([[1 if col.lower() in symptom_list else 0 for col in symptom_cols]])
+    input_vector = np.array([[1 if col.lower() in symptom_list else 0 for col in symptom_cols]], dtype=np.float32)
 
     # Run inference
     interpreter.set_tensor(input_index, input_vector)
