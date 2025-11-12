@@ -1,27 +1,27 @@
 // --- API CONFIGURATION AND JSON SCHEMA ---
-const GEMINI_API_KEY = `${import.meta.env.VITE_GEMINI_API}`; // NOTE: This will be populated by the runtime environment.
+const GEMINI_API_KEY = `AIzaSyDQFsTgv_TmKVwerILc8RT09Wfj1ItEXhw`; // NOTE: This will be populated by the runtime environment.
 const GEMINI_MODEL = "gemini-2.5-flash-preview-09-2025";
 const API_URL_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
 // JSON Schema for structured output for the Disease Details Page
 const DiseaseDetailSchema = {
-    type: "OBJECT",
+    type: "object",
     properties: {
-        fullDescription: { type: "STRING", description: "A comprehensive, clinical, and non-alarmist overview of the disease (about 100 words)." },
+        fullDescription: { type: "string", description: "A comprehensive, clinical, and non-alarmist overview of the disease (about 100 words)." },
         detailedSymptoms: {
-            type: "ARRAY",
+            type: "array",
             description: "List of 5 common symptoms associated with the disease.",
-            items: { type: "STRING" }
+            items: { type: "string" }
         },
         precautions: {
-            type: "ARRAY",
+            type: "array",
             description: "List of 4 key protective measures or lifestyle changes.",
-            items: { type: "STRING" }
+            items: { type: "string" }
         },
         advice: {
-            type: "ARRAY",
+            type: "array",
             description: "List of 4 general health and treatment suggestions that are NOT a substitute for a doctor's order.",
-            items: { type: "STRING" }
+            items: { type: "string" }
         }
     },
     required: ["fullDescription", "detailedSymptoms", "precautions", "advice"]
@@ -46,13 +46,14 @@ const fetchGeminiDetails = async (diseaseName) => {
     
     const payload = {
         contents: [{ parts: [{ text: userQuery }] }],
-        systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
-        generationConfig: {
-            responseMimeType: "application/json",
-            responseSchema: DiseaseDetailSchema,
+        system_instruction: {
+            role: "system",
+            parts: [{ text: SYSTEM_INSTRUCTION }]
         },
-        // Use Google Search grounding tool for up-to-date, grounded information
-        tools: [{ "google_search": {} }],
+        generation_config: {
+            response_mime_type: "application/json",
+            response_schema: DiseaseDetailSchema,
+        },
     };
 
     const apiUrl = `${API_URL_BASE}/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
@@ -71,7 +72,7 @@ const fetchGeminiDetails = async (diseaseName) => {
                     throw new Error(`Server error: status ${response.status}`);
                 }
                 // For client errors (e.g., 4xx), don't retry, just fail gracefully
-                console.error(`Gemini API call failed with status: ${response.status}`);
+                console.error(`Gemini API call failed with status: ${response.status} - Reason: Invalid request payload (likely related to JSON structure or key).`);
                 return null;
             }
 
@@ -79,7 +80,7 @@ const fetchGeminiDetails = async (diseaseName) => {
             const jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
 
             if (!jsonText) {
-                 console.error("API response missing structured JSON content.");
+                 console.error("API response missing structured JSON content. Response: ",result);
                  return null;
             }
             
@@ -97,6 +98,8 @@ const fetchGeminiDetails = async (diseaseName) => {
             await new Promise(resolve => setTimeout(resolve, delay));
         }
     }
+    // Should be unreachable, but good practice
+    return null;
 };
 
 export default fetchGeminiDetails;
