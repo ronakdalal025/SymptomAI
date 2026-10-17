@@ -1,7 +1,8 @@
+import 'dotenv/config';
+
 // --- API CONFIGURATION AND JSON SCHEMA ---
-const GEMINI_API_KEY = `AIzaSyDQFsTgv_TmKVwerILc8RT09Wfj1ItEXhw`; // NOTE: This will be populated by the runtime environment.
-const GEMINI_MODEL = "gemini-2.5-flash-preview-09-2025";
-const API_URL_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
+const GEMINI_MODEL = process.env.GEMINI_MODEL;
+const API_URL_BASE = process.env.GEMINI_URL_BASE;
 
 // JSON Schema for structured output for the Disease Details Page
 const DiseaseDetailSchema = {
@@ -38,12 +39,12 @@ const SYSTEM_INSTRUCTION = "You are a specialized medical AI assistant. Your tas
  * @param {string} diseaseName - The name of the disease to query.
  * @returns {object | null} The structured disease details or null on failure.
  */
-const fetchGeminiDetails = async (diseaseName) => {
+const fetchDiseaseDetails = async (diseaseName) => {
     const maxRetries = 3;
     let attempt = 0;
 
     const userQuery = `Provide a detailed, structured summary for the disease: "${diseaseName}". Focus on common symptoms, general health advice, and necessary precautions.`;
-    
+
     const payload = {
         contents: [{ parts: [{ text: userQuery }] }],
         system_instruction: {
@@ -56,7 +57,7 @@ const fetchGeminiDetails = async (diseaseName) => {
         },
     };
 
-    const apiUrl = `${API_URL_BASE}/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+    const apiUrl = `${API_URL_BASE}/${GEMINI_MODEL}:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
     while (attempt < maxRetries) {
         try {
@@ -67,12 +68,20 @@ const fetchGeminiDetails = async (diseaseName) => {
             });
 
             if (!response.ok) {
-                // If it's a server error (e.g., 5xx), attempt a retry
-                if (response.status >= 500) {
-                    throw new Error(`Server error: status ${response.status}`);
+                const errorBody = await response.json().catch(() => ({}));
+
+                console.error("Gemini API error:", {
+                    status: response.status,
+                    details: errorBody,
+                });
+
+                if (response.status === 429 || response.status >= 500) {
+                    throw new Error(
+                        `Gemini API returned ${response.status}: ${errorBody.error?.message ?? "Unknown API error"
+                        }`
+                    );
                 }
-                // For client errors (e.g., 4xx), don't retry, just fail gracefully
-                console.error(`Gemini API call failed with status: ${response.status} - Reason: Invalid request payload (likely related to JSON structure or key).`);
+
                 return null;
             }
 
@@ -80,10 +89,10 @@ const fetchGeminiDetails = async (diseaseName) => {
             const jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
 
             if (!jsonText) {
-                 console.error("API response missing structured JSON content. Response: ",result);
-                 return null;
+                console.error("API response missing structured JSON content. Response: ", result);
+                return null;
             }
-            
+
             return JSON.parse(jsonText);
 
         } catch (error) {
@@ -91,7 +100,7 @@ const fetchGeminiDetails = async (diseaseName) => {
             attempt++;
             if (attempt >= maxRetries) {
                 console.error("Gemini API call failed after max retries.");
-                return null; 
+                return null;
             }
             // Exponential backoff delay
             const delay = Math.pow(2, attempt) * 1000;
@@ -102,4 +111,4 @@ const fetchGeminiDetails = async (diseaseName) => {
     return null;
 };
 
-export default fetchGeminiDetails;
+export default fetchDiseaseDetails;

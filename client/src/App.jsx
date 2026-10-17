@@ -41,7 +41,7 @@ function App() {
               />
             } />
             <Route path="/info" element={<InfoPage />} />
-            <Route path="/readmore" element={<ReadMore selectedSymptoms={selectedSymptoms} disease={disease} />} />
+            <Route path="/readmore" element={<ReadMore disease={disease} />} />
           </Routes>
         </main>
         <Footer />

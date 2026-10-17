@@ -1,54 +1,73 @@
-import React, { useEffect, useState } from 'react'
-import fetchGeminiDetails from '../api/gemini';
+import { useEffect, useState } from 'react'
+import { fetchDiseaseDetails } from '../api/api';
 import { Activity, AlertTriangle, Brain, ChevronLeft, ShieldCheck, Zap } from 'lucide-react';
 import Button from '../components/Button';
 import Card from '../components/Card';
+import { useNavigate } from 'react-router-dom';
 
-const ReadMore = ({navigate,disease}) => {
+const ReadMore = ({ disease }) => {
     const [details, setDetails] = useState(null);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
-    // Logic to fetch the detailed Gemini response
     useEffect(() => {
-        if (disease && disease.name) {
-            setLoading(true);
-            setDetails(null); 
+        if (!disease?.name) {
+            setDetails(null);
+            setLoading(false);
+            return;
+        }
 
-            const loadDetails = async () => {
-                const fetchedDetails = await fetchGeminiDetails(disease.name);
-                
-                try {
-                    if (fetchedDetails) {
+        let cancelled = false;
+
+        const loadDetails = async () => {
+            setLoading(true);
+            setDetails(null);
+
+            try {
+                const fetchedDetails = await fetchDiseaseDetails(disease.name);
+
+                if (!cancelled) {
                     setDetails(fetchedDetails);
                 }
-                } catch (error) {
-                    console.log(error);
+            } catch (error) {
+                if (!cancelled) {
+                    setDetails(null);
                 }
-                setLoading(false);
-                
-            };
-            loadDetails();
-        }
-    }, [disease]);
+            } finally {
+                if (!cancelled) {
+                    setLoading(false);
+                }
+            }
+        };
 
-    if (!disease || !disease.name) {
-        return (
-            <div className="max-w-4xl mx-auto py-20 px-4 text-center">
-                <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                <h2 className="text-2xl font-bold text-gray-900">Disease details not found.</h2>
-                <Button onClick={() => navigate('/')} className="mt-6">Go to Home</Button>
-            </div>
-        );
-    }
-    
+        loadDetails();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [disease?.name]);
+
     if (loading) {
         return (
             <div className="max-w-4xl mx-auto py-20 px-4 text-center">
-                 <svg className="animate-spin h-8 w-8 text-teal-600 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <h2 className="text-xl text-gray-700">Generating detailed AI analysis for **{disease.name}**...</h2>
+                <div className="animate-spin h-8 w-8 border-4 border-teal-600 border-t-transparent rounded-full mx-auto mb-4" />
+                <h2 className="text-xl text-gray-700">
+                    Loading disease details for {disease.name}...
+                </h2>
+            </div>
+        );
+    }
+
+    if (!details) {
+        return (
+            <div className="max-w-4xl mx-auto py-20 px-4 text-center">
+                <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                <h2 className="text-xl text-gray-700">
+                    Unable to load disease details.
+                </h2>
+                <Button onClick={() => navigate("/results")} className="mt-6">
+                    Back to Results
+                </Button>
             </div>
         );
     }
@@ -64,7 +83,7 @@ const ReadMore = ({navigate,disease}) => {
             <h1 className="text-4xl font-extrabold text-gray-900 mb-3">
                 {disease.name}
             </h1>
-            
+
             {/* Main AI Description */}
             <Card className="mb-8 border-l-4 border-teal-500">
                 <h2 className="text-2xl font-bold text-teal-700 mb-4">Comprehensive AI Overview</h2>
@@ -122,7 +141,7 @@ const ReadMore = ({navigate,disease}) => {
                     <p className="text-teal-800 italic">{disease.initialRecommendation}</p>
                 </Card>
             </div>
-            
+
             {/* Medical Disclaimer */}
             <div className="mt-10 p-4 bg-red-100 border border-red-400 rounded-xl text-center text-sm text-red-800 font-medium">
                 <p>
